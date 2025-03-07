@@ -1,38 +1,31 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState } from "react";
+import { loginUser } from "../api";
 
 const Login = () => {
-  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const navigate = useNavigate();
+  const [message, setMessage] = useState("");
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    // Authentication logic with AWS Cognito (to be added)
-    console.log("Logging in", { email, password });
-    navigate("/home");
+    try {
+      const response = await loginUser({ username, password });
+      localStorage.setItem("token", response.data.access_token);
+      setMessage("Login successful!");
+    } catch (error) {
+      setMessage("Invalid credentials. Try again.");
+    }
   };
 
   return (
-    <div className="flex flex-col items-center justify-center h-screen bg-gray-100">
-      <h1 className="text-2xl font-bold mb-4">Login to Echo Mate Lite</h1>
-      <form onSubmit={handleLogin} className="bg-white p-6 shadow-lg rounded-lg">
-        <input
-          type="email"
-          placeholder="Email"
-          className="border p-2 mb-4 w-full"
-          onChange={(e) => setEmail(e.target.value)}
-        />
-        <input
-          type="password"
-          placeholder="Password"
-          className="border p-2 mb-4 w-full"
-          onChange={(e) => setPassword(e.target.value)}
-        />
-        <button type="submit" className="bg-blue-500 text-white px-4 py-2 rounded">
-          Login
-        </button>
+    <div>
+      <h2>Login</h2>
+      <form onSubmit={handleLogin}>
+        <input type="text" placeholder="Username" value={username} onChange={(e) => setUsername(e.target.value)} />
+        <input type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} />
+        <button type="submit">Login</button>
       </form>
+      <p>{message}</p>
     </div>
   );
 };

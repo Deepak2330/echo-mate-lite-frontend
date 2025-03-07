@@ -1,18 +1,64 @@
-import React, { useState } from "react";
-import Post from "../components/Post";
+import { useState, useEffect } from "react";
+import { fetchPosts, createPost } from "../api";
 
 const Home = () => {
-  const [posts, setPosts] = useState([
-    { username: "Deepak", content: "Hello, this is my first post!" },
-    { username: "Sangeeta", content: "Excited to be here!" },
-  ]);
+  const [posts, setPosts] = useState([]);
+  const [content, setContent] = useState("");
+
+  // Fetch posts when the component mounts
+  useEffect(() => {
+    fetchPosts().then((response) => setPosts(response.data));
+  }, []);
+
+  // Handle Post Submission
+  const handlePostSubmit = async (e) => {
+    e.preventDefault();
+    const token = localStorage.getItem("token");
+    if (!token) {
+      alert("You need to log in first.");
+      return;
+    }
+
+    try {
+      await createPost({ content }, token);
+      setContent(""); // Clear input field
+      window.location.reload(); // Refresh to show new post
+    } catch (error) {
+      console.error("Error creating post", error);
+      alert("Failed to create post.");
+    }
+  };
 
   return (
-    <div className="container mx-auto p-4">
-      <h1 className="text-3xl font-bold mb-4">Home Feed</h1>
-      {posts.map((post, index) => (
-        <Post key={index} username={post.username} content={post.content} />
-      ))}
+    <div>
+      <h2>Home Feed</h2>
+
+      {/* Post Creation Form */}
+      <form onSubmit={handlePostSubmit}>
+        <input
+          type="text"
+          name="content"
+          placeholder="What's on your mind?"
+          value={content}
+          onChange={(e) => setContent(e.target.value)}
+          required
+        />
+        <button type="submit">Post</button>
+      </form>
+
+      {/* Display Posts */}
+      <div>
+        {posts.length === 0 ? (
+          <p>No posts available.</p>
+        ) : (
+          posts.map((post, index) => (
+            <div key={index}>
+              <h4>{post.username}</h4>
+              <p>{post.content}</p>
+            </div>
+          ))
+        )}
+      </div>
     </div>
   );
 };
